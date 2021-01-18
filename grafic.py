@@ -204,3 +204,4 @@ pole.place(x=200, y = 5)
 osi()
 
 window.mainloop()
+
