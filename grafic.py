@@ -2,7 +2,7 @@ from math import sqrt
 from parabola import Parabola as Pb
 from tkinter import *
 
-def znacheniya():
+def create_labels():
     names = ['a', 'b', 'c', 'D', 'x1', 'x2', 'Вершины ', 'x', 'y' ]
     for j in range(2):
         for i in range(0, len(names)):
@@ -11,12 +11,15 @@ def znacheniya():
             couple.append(Entry(window))
             interface[j].append(couple)
     return(interface)
-    
+           
 def placing(x, g):
+    answer_lb.grid(column = 0, row = 21, rowspan = 4, columnspan = 2)
     r = 0
     for i in range(0, len(interface[x])):
         interface[x][i][0].grid(column = 0, row = r + g)
         interface[x][i][1].grid(column = 1, row = r + g)
+        if i >= 3:
+            interface[x][i][1]['state'] = DISABLED
         r += 1
 
 def get_data(a, b, c):    
@@ -33,6 +36,7 @@ def get_data(a, b, c):
 def clearing(name):
     name['state'] = NORMAL
     name.delete(0, END)
+    name['state'] = DISABLED
 
 def enabliding(name, value):
     name['state'] = NORMAL
@@ -52,8 +56,7 @@ def objects():
     return(usl)
 
 def clicked():
-    global count
-    count += 1 
+    pole.delete('parabola')
     objects()
     system_solving(interface)
     global usl
@@ -65,29 +68,14 @@ def clicked():
         if usl[k]:
             par = interface[k][9]
             enabliding(interface[k][3][1], par.D)
-            if par.iskorni:
-                enabliding(interface[k][4][1], par.x1)
-                enabliding(interface[k][5][1], par.x2)
-            else:
-                enabliding(interface[k][4][1], 'None')
-                enabliding(interface[k][5][1], 'None')
-            if par.a > 0:
-                enabliding(interface[k][6][1], 'Параболы:')
-                enabliding(interface[k][7][1], par.vertex_x)
-                enabliding(interface[k][8][1], float(par.vertex_y * -1))
-            else:
-                enabliding(interface[k][6][1], 'Параболы:')
-                enabliding(interface[k][7][1], 'None')
-                enabliding(interface[k][8][1], 'None')
-            build_grapf(par)
-        else:
-            pole.delete('parabola')
+            enabliding(interface[k][4][1], par.x_1)
+            enabliding(interface[k][5][1], par.x_2)
+            enabliding(interface[k][6][1], 'Параболы:')
+            enabliding(interface[k][7][1], par.vertex_x)
+            enabliding(interface[k][8][1], float(par.vertex_y * -1))
+            build_graf(par)
 
-def build_grapf(par):
-    global count
-    if count >= 2:
-        pole.delete('parabola')
-        count = 0
+def build_graf(par):
     global mash
     i = 0
     half_osi_x = int(pole['width']) / 2
@@ -99,7 +87,6 @@ def build_grapf(par):
         y2 = par.knowY(x2)
         pole.create_line(x1 * mash + half_osi_x, y1 * mash * -1 + half_osi_x, x2 * mash + half_osi_x, y2 * -1 * mash + half_osi_x, fill = 'black', width = 2, tags = 'parabola')
         i+=0.1
-    count +=1
 
 def osi():
     global mash
@@ -142,39 +129,28 @@ def osi():
         pole.create_text(a, half_osi_y + 8, justify = CENTER, text = str(i), font = 'Times 7')
         a += mash
 
-def system_solving(par):
-    get_data(par[0][0][1], par[0][1][1], par[0][2][1])
-    can_1, a_1, b_1, c_1 = get_data(par[0][0][1], par[0][1][1], par[0][2][1])
-    can_2, a_2, b_2, c_2 = get_data(par[1][0][1], par[1][1][1], par[1][2][1])
-    a = a_1 - a_2
-    b = b_1 - b_2
-    c = c_1 - c_2
-    if can_1 and can_2 :
-        if a_1 == a_2 and b_1 == b_2 and c_1 == c_2:
-            print('Одинаковые графики')
-        elif a == 0 and b!=0:        
-            x_1 = -1*c / b
-            y_1 = round(knowY(x_1, a_1, b_1, c_1), 3)
-            print('x_1: ', x_1,'\n', 'y_1: ', y_1)        
-        elif a!= 0 and b == 0 and (-1*c/a) >= 0 and c!= 0: 
-            x_1 = sqrt(-1*c/a)
-            x_2 = -1 * sqrt(-1*c/a)
-            y_1 = round(knowY(x_1, a_1, b_1, c_1), 3)
-            y_2 = round(knowY(x_2, a_1, b_1, c_1), 3)
-            print('x_1: ', x_1,'\n', 'y_1: ', y_1, '\n', 'x_2: ', x_2,'\n', 'y_2: ', y_2)
-        elif a!= 0 and (-1*c/a) < 0:
-            print('Нет решений')
-        elif b == 0:
-            print('Нет решений')
-        elif b != 0 and c != 0 and Pb(a, b, c).D >= 0:
-            x_1 = Pb(a, b, c).x1
-            x_2 = Pb(a, b, c).x2
-            y_1 = round(knowY(x_1, a_1, b_1, c_1), 3)
-            y_2 = round(knowY(x_2, a_1, b_1, c_1), 3)
-            print('x_1: ', x_1,'\n', 'y_1: ', y_1, '\n', 'x_2: ', x_2,'\n', 'y_2: ', y_2)
+def system_solving(interface):
+    if interface[0][9].can and interface[1][9].can:
+        a1, a2, b1, b2, c1, c2 = interface[0][9].a, interface[1][9].a, interface[0][9].b, interface[1][9].b, \
+        interface[0][9].c, interface[1][9].c
+        a, b, c = a1 - a2, b1 - b2, c1 - c2
+        par = Pb(a, b, c)
+        if a == 0 and b == 0 and c == 0:
+            answer = 'Одинаковые графики'
         elif Pb(a, b, c).D < 0:
-            print('Нет решений')
-                        
+            answer = 'Нет решений'
+        else:
+            x1 = par.x_1
+            x2 = par.x_2
+            y1 = interface[0][9].knowY(x1)
+            y2 = interface[0][9].knowY(x2)
+            answer = 'x_1: ' + str(round(x1, 2)) + '\n' + 'y_1: ' +  str(round(y1, 2)) + '\n' + 'x_2: ' \
+            + str(round(x2, 2)) + '\n' +  'y_2: ' +  str(round(y2, 2))
+        if 'answer' in locals():
+            answer_lb['text'] = answer
+            print(answer)
+    else:
+        answer_lb['text'] = ''                    
 def knowY(x, a, b, c):
         y = a * x**2 + b * x + c
         return(y)
@@ -184,15 +160,13 @@ window.geometry('1170x1020')
 window.title('Parabola')
 
 interface = [[], []]
-global count
-count = 1
-znacheniya()
+create_labels()
+answer_lb = Label(window)
 placing(0, 0)
 Label(text = '------------------------------------').grid(column = 0, row = 9, columnspan = 2)
 placing(1, 10)
 btn = Button(window, text = 'рассчитать', command = clicked, width = 20)
 btn.grid(column = 0, row = 20, columnspan = 2)
-
 
 global pole
 global mash
@@ -204,4 +178,3 @@ pole.place(x=200, y = 5)
 osi()
 
 window.mainloop()
-
